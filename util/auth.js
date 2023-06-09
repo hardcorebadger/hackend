@@ -10,10 +10,10 @@ const auth = (req, res, next) => {
       req.user = decoded.user
       next()
     } catch(err) {
-      res.sendStatus(401)
+      return res.sendStatus(401)
     }
   } else {
-    res.sendStatus(401)
+    return res.sendStatus(401)
   }
 }
 

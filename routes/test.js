@@ -16,7 +16,7 @@ routes.post('/test', auth, (req, res) => {
   }
   users[req.user] = user
   saveTable('users', users)
-  res.send({'status':'success','data':user.data})
+  return res.send({'status':'success','data':user.data})
 })
 
 module.exports = routes

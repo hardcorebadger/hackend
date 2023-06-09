@@ -8,84 +8,84 @@ const {saveTable, loadTable} = require('../util/db.js')
 
 routes.post('/api/login', (req, res) => {
   let users = loadTable('users')
-  if (!users[req.body.email]) {
-    res.sendStatus(401)
-  } else {
-    user = users[req.body.email]
-    if (user.password !== req.body.password) {
-      res.sendStatus(401)
-    } else {
-      res.send({
-        "status":"success",
-        "user":user,
-        "access_token":signToken(user)
-      })
-    }
-  }
+  // user doesnt exist
+  if (!users[req.body.email]) 
+    return res.sendStatus(401)
+
+  // password incorrect
+  user = users[req.body.email]
+  if (user.password !== req.body.password) {
+    return res.sendStatus(401)
+  } 
+
+  // login
+  return res.send({
+    "user":user,
+    "access_token":signToken(user)
+  })
+  
 })
 
 routes.post('/api/google', async (req, res) => {
   try {
+    // hit up google
     const response = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo?access_token="+req.body.credential)
     const data = response.data
-    if (!data.email) {
-      res.sendStatus(401)
-    } else {
-      let users = loadTable('users')
-      if (!users[data.email]) {
-        // create the user
-        users[data.email] = {
-          "email":data.email,
-          "first_name":data.given_name,
-          "last_name":data.family_name,
-          "password": null
-        }
-        user = users[data.email]
-        saveTable('users', users)
-        res.send({
-          "status":"success",
-          "user":user,
-          "access_token":signToken(user)
-        })
-      } else {
-        user = users[data.email]
-        res.send({
-          "status":"success",
-          "user":user,
-          "access_token":signToken(user)
-        })
+    
+    // failed auth
+    if (!data.email) 
+      return res.sendStatus(401)
+
+    let users = loadTable('users')
+    if (!users[data.email]) {
+      // register
+      users[data.email] = {
+        "email":data.email,
+        "first_name":data.given_name,
+        "last_name":data.family_name,
+        "password": null
       }
+      user = users[data.email]
+      saveTable('users', users)
+      return res.send({
+        "user":user,
+        "access_token":signToken(user)
+      })
+
+    } else {
+      // login
+      user = users[data.email]
+      return res.send({
+        "user":user,
+        "access_token":signToken(user)
+      })
     }
   } catch (error) {
     console.log(error)
-    res.sendStatus(500)
+    return res.sendStatus(500)
   }
 })
 
 routes.post('/api/register', (req, res) => {
   let users = loadTable('users')
-  console.log(req.body.email)
   users[req.body.email] = req.body
   user = users[req.body.email]
   saveTable('users', users)
-  res.send({
-    "status":"success",
+  return res.send({
     "user":user,
     "access_token":signToken(user)
   })
 })
 
 routes.post('/api/logout', auth, (req, res) => {
-  res.send({
-    "status":"success",
+  return res.send({
     "message":"user logged out"
   })
 })
 
 routes.post('/api/refresh', auth, (req, res) => {
   user = loadTable('users')[req.user]
-  res.send({
-    "status":"success",
+  return res.send({
     "user":user,
     "access_token":signToken(user)
   })
@@ -93,8 +93,7 @@ routes.post('/api/refresh', auth, (req, res) => {
 
 routes.get('/api/me', auth, (req, res) => {
   user = loadTable('users')[req.user]
-  res.send({
-    "status":"success",
+  return res.send({
     "user":user
   })
 })
