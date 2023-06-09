@@ -15,6 +15,6 @@ const testRoutes = require('./routes/auth.js')
 router.use(testRoutes)
 app.use('/', router)
 //start server
-app.listen(8000, ()=>{
-    console.log("listening at http://localhost:8000")
+app.listen(process.env.PORT || 3000, ()=>{
+    console.log("we're live baby")
 }) 
