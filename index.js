@@ -11,8 +11,8 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }));
 // route
 const router = express.Router();
-const testRoutes = require('./routes/auth.js')
-router.use(testRoutes)
+router.use(require('./routes/auth.js'))
+router.use(require('./routes/test.js'))
 app.use('/', router)
 //start server
 app.listen(process.env.PORT || 3000, ()=>{

@@ -1,43 +1,8 @@
 const express = require("express")
 const routes = express.Router();
-const fs = require('fs');
-const jwt = require('jsonwebtoken');
 const axios = require('axios');
-
-// util functions 
-
-const saveTable = (table, data) => {
-    const stringifyData = JSON.stringify(data)
-    fs.writeFileSync('./data/'+table+'.json', stringifyData)
-}
-
-const loadTable = (table) => {
-    const jsonData = fs.readFileSync('./data/'+table+'.json')
-    return JSON.parse(jsonData)    
-}
-
-const auth = (req, res, next) => {
-  const bearerHeader = req.headers['authorization']
-  if (typeof bearerHeader !== 'undefined') {
-    const bearer = bearerHeader.split(' ')
-    const token = bearer[1]
-    try {
-      const decoded = jwt.verify(token, 'secret')
-      req.user = decoded.user
-      next()
-    } catch(err) {
-      res.sendStatus(401)
-    }
-  } else {
-    res.sendStatus(401)
-  }
-}
-
-const sign_token= (user) => {
-  return jwt.sign({
-    user: user
-  }, 'secret', { expiresIn: '3m' });
-}
+const {auth, signToken} = require('../util/auth.js')
+const {saveTable, loadTable} = require('../util/db.js')
 
 // routes
 
@@ -54,7 +19,7 @@ routes.post('/api/login', (req, res) => {
         "status":"success",
         "user":user,
         "authorisation": {
-          "token":sign_token(user),
+          "token":signToken(user),
           "type":"bearer"
         }
       })
@@ -78,23 +43,23 @@ routes.post('/api/google', async (req, res) => {
           "last_name":data.family_name,
           "password": null
         }
-        req.user = users[data.email]
+        user = users[data.email]
         saveTable('users', users)
         res.send({
           "status":"success",
-          "user":req.user,
+          "user":user,
           "authorisation": {
-            "token":sign_token(req.user),
+            "token":signToken(user),
             "type":"bearer"
           }
         })
       } else {
-        req.user = users[data.email]
+        user = users[data.email]
         res.send({
           "status":"success",
-          "user":req.user,
+          "user":user,
           "authorisation": {
-            "token":sign_token(req.user),
+            "token":signToken(user),
             "type":"bearer"
           }
         })
@@ -110,13 +75,13 @@ routes.post('/api/register', (req, res) => {
   let users = loadTable('users')
   console.log(req.body.email)
   users[req.body.email] = req.body
-  req.user = users[req.body.email]
+  user = users[req.body.email]
   saveTable('users', users)
   res.send({
     "status":"success",
-    "user":req.user,
+    "user":user,
     "authorisation": {
-      "token":sign_token(req.user),
+      "token":signToken(user),
       "type":"bearer"
     }
   })
@@ -130,18 +95,20 @@ routes.post('/api/logout', auth, (req, res) => {
 })
 
 routes.post('/api/refresh', auth, (req, res) => {
+  user = loadTable('users')[req.user]
   res.send({
     "status":"success",
-    "user":req.user,
+    "user":user,
     "authorisation": {
-      "token":sign_token(req.user),
+      "token":signToken(user),
       "type":"bearer"
     }
   })
 })
 
 routes.get('/api/me', auth, (req, res) => {
-  res.send(req.user)
+  user = loadTable('users')[req.user]
+  res.send(user)
 })
 
 module.exports = routes
