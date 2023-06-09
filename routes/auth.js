@@ -18,10 +18,7 @@ routes.post('/api/login', (req, res) => {
       res.send({
         "status":"success",
         "user":user,
-        "authorisation": {
-          "token":signToken(user),
-          "type":"bearer"
-        }
+        "access_token":signToken(user)
       })
     }
   }
@@ -48,20 +45,14 @@ routes.post('/api/google', async (req, res) => {
         res.send({
           "status":"success",
           "user":user,
-          "authorisation": {
-            "token":signToken(user),
-            "type":"bearer"
-          }
+          "access_token":signToken(user)
         })
       } else {
         user = users[data.email]
         res.send({
           "status":"success",
           "user":user,
-          "authorisation": {
-            "token":signToken(user),
-            "type":"bearer"
-          }
+          "access_token":signToken(user)
         })
       }
     }
@@ -80,10 +71,7 @@ routes.post('/api/register', (req, res) => {
   res.send({
     "status":"success",
     "user":user,
-    "authorisation": {
-      "token":signToken(user),
-      "type":"bearer"
-    }
+    "access_token":signToken(user)
   })
 })
 
@@ -99,16 +87,16 @@ routes.post('/api/refresh', auth, (req, res) => {
   res.send({
     "status":"success",
     "user":user,
-    "authorisation": {
-      "token":signToken(user),
-      "type":"bearer"
-    }
+    "access_token":signToken(user)
   })
 })
 
 routes.get('/api/me', auth, (req, res) => {
   user = loadTable('users')[req.user]
-  res.send(user)
+  res.send({
+    "status":"success",
+    "user":user
+  })
 })
 
 module.exports = routes
